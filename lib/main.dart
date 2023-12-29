@@ -31,7 +31,6 @@ class WordleGameScreen extends StatefulWidget {
 
 class WordleGameScreenState extends State<WordleGameScreen> {
   late String hiddenWord;
-  late List<String> guessedLetters;
 
   @override
   void initState() {
@@ -41,7 +40,6 @@ class WordleGameScreenState extends State<WordleGameScreen> {
 
   void startNewGame() {
     hiddenWord = generateWord();
-    guessedLetters = [];
   }
 
   String generateWord() {
@@ -79,19 +77,6 @@ class WordleGameScreenState extends State<WordleGameScreen> {
                 length: 5,
                 showCursor: false,
               ),
-              Text(
-                'Guessed Letters: ${guessedLetters.join(", ")}',
-                style: const TextStyle(fontSize: 18),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    startNewGame();
-                  });
-                },
-                child: const Text('New Game'),
-              ),
               const Spacer(),
               CustomKeyboard(
                 hiddenWord: hiddenWord,
@@ -114,6 +99,8 @@ class CustomKeyboard extends StatefulWidget {
 }
 
 class _CustomKeyboardState extends State<CustomKeyboard> {
+  List<String> wrongLetters = [];
+  List<String> rightLetters = [];
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -123,7 +110,12 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
       onKey: (RawKeyEvent event) {
         if (event is RawKeyDownEvent) {
           final String key = event.logicalKey.keyLabel;
-          if (key.isNotEmpty) {
+          p.log(key);
+          if (key.isNotEmpty &&
+              !key.isDigit() &&
+              ((key.contains(RegExp(r'[A-Z]')) && key.length == 1) ||
+                  key.toLowerCase() == 'backspace' ||
+                  key.toLowerCase() == 'enter')) {
             onKeyPressed(key);
           }
         }
@@ -186,12 +178,28 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
     double height = 30,
     bool isDelete = false,
   }) {
+    bool isWrongLetter = wrongLetters.contains(label);
+    bool isRightLetter = rightLetters.contains(label);
     return Expanded(
       flex: flex,
       child: Container(
         height: height,
         margin: const EdgeInsets.all(4.0),
         child: ElevatedButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.resolveWith<Color>(
+              (Set<MaterialState> states) {
+                if (states.contains(MaterialState.pressed)) {
+                  Colors.blueAccent.withOpacity(0.5);
+                } else if (isWrongLetter) {
+                  return Colors.red; // Change the color for pressed buttons
+                } else if (isRightLetter) {
+                  return Colors.green; // Change the color for pressed buttons
+                }
+                return Colors.blueAccent; // Use the component's default.
+              },
+            ),
+          ),
           onPressed: () {
             onKeyPressed(label);
           },
@@ -213,27 +221,56 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
           p.log('word incomplete');
           return;
         }
-        if (all.contains(widget.controller.text.toLowerCase())) {
-          if (widget.controller.text == widget.hiddenWord) {
-            p.log('Correct');
-          } else {
-            p.log('Wrong');
-          }
-        } else {
-          p.log('unknown word');
-        }
+        updatePressedKeys();
       } else {
+        if (widget.controller.text.length == 5) {
+          p.log('word full');
+          return;
+        }
         widget.controller.text += key;
+        // pressedKeys.add(key);
       }
     });
   }
 
-  // void onRawKeyEvent(RawKeyEvent event) {
-  // if (event is RawKeyDownEvent) {
-  //   final String key = event.logicalKey.keyLabel;
-  //   if (key.isNotEmpty) {
-  //     onKeyPressed(key);
-  //   }
-  // }
-  // }
+  void updatePressedKeys() {
+    // Get the entered word
+    String enteredWord = widget.controller.text;
+
+    // Check the entered word against the hidden word
+    if (all.contains(enteredWord.toLowerCase())) {
+      if (enteredWord == widget.hiddenWord) {
+        p.log('Correct');
+      } else {
+        p.log('Wrong');
+      }
+      List<String> pressedKeys = [];
+
+      pressedKeys = enteredWord.split('');
+
+      p.log(pressedKeys.toString());
+
+      setState(() {
+        wrongLetters = pressedKeys
+            .where((letter) => !widget.hiddenWord.split('').contains(letter))
+            .toList();
+        rightLetters = pressedKeys
+            .where((letter) => widget.hiddenWord.split('').contains(letter))
+            .toList();
+      });
+    } else {
+      p.log('unknown word');
+    }
+  }
+}
+
+extension StringExtension on String {
+  bool isDigit() {
+    try {
+      double.parse(this);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }
