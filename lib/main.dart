@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 import 'package:wordle/core/utils/utils.dart';
 import 'package:wordle/widgets/field.dart';
+import 'package:wordle/widgets/something.dart';
 
 void main() {
   runApp(const WordleGameApp());
@@ -38,6 +39,10 @@ class WordleGameScreenState extends State<WordleGameScreen> {
   void initState() {
     super.initState();
     startNewGame();
+    for (int i = 0; i < 5; i++) {
+      controllers.add(TextEditingController());
+      focusNodes.add(FocusNode());
+    }
   }
 
   void startNewGame() {
@@ -50,13 +55,62 @@ class WordleGameScreenState extends State<WordleGameScreen> {
     int randomIndex = Random().nextInt(fiveLetterWords.length);
     return fiveLetterWords[randomIndex].toUpperCase();
   }
+  List<TextEditingController> controllers = [];
+  List<FocusNode> focusNodes = [];
+  bool isCorrect = false;
+  List<int> correctness = [];
+  Widget buildKey(
+    String label, {
+    int? flex = 1,
+    double height = 30,
+    bool isDelete = false,
+  }) {
+    bool isWrongLetter = wrongLetters.contains(label);
+    bool isRightLetter = rightLetters.contains(label);
+    return Expanded(
+      flex: flex ?? 0,
+      child: Container(
+        height: height,
+        margin: const EdgeInsets.all(4.0),
+        child: ElevatedButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.resolveWith<Color>(
+              (Set<MaterialState> states) {
+                if (states.contains(MaterialState.pressed)) {
+                  Colors.blueAccent.withOpacity(0.5);
+                } else if (isWrongLetter) {
+                  return Colors.red; // Change the color for pressed buttons
+                } else if (isRightLetter) {
+                  return Colors.green; // Change the color for pressed buttons
+                }
+                return Colors.blueAccent; // Use the component's default.
+              },
+            ),
+          ),
+          onPressed: () {
+            onKeyPressed(label);
+          },
+          child: isDelete
+              ? const Center(child: Icon(Icons.backspace))
+              : Center(child: Text(label)),
+        ),
+      ),
+    );
+  }
 
-  final TextEditingController controller1 = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
           title: const Text('Wordle Game'),
+          actions: [
+            IconButton(
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const Something()));
+                },
+                icon: Icon(Icons.ramen_dining))
+          ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -72,47 +126,78 @@ class WordleGameScreenState extends State<WordleGameScreen> {
                 'Hidden Word: $hiddenWord',
                 style: const TextStyle(fontSize: 18),
               ),
-
-              Pinput(
-                useNativeKeyboard: false,
-                controller: controller1,
-                length: 5,
-                showCursor: false,
-                defaultPinTheme: PinTheme(
-                    height: 50,
-                    width: 50,
-                    decoration: BoxDecoration(
-                        color: Colors.black12,
-                        borderRadius: BorderRadius.circular(10))),
-              ),
               ySpace(20),
-              // InputField(),
-              const Spacer(),
-              CustomKeyboard(
-                hiddenWord: hiddenWord,
-                controller: controller1,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // InputField(
+                  //   controller: controllers[0],
+                  //   index: 0,
+                  // ),
+                  // InputField(
+                  //   controller: controllers[1],
+                  //   index: 1,
+                  // ),
+                  // InputField(
+                  //   controller: controllers[2],
+                  //   index: 2,
+                  // ),
+                  // InputField(
+                  //   controller: controllers[3],
+                  //   index: 3,
+                  // ),
+                  // InputField(
+                  //   controller: controllers[4],
+                  //   index: 4,
+                  // ),
+                  Pinput(
+                    length: 1,
+                    controller: controllers[0],
+                    focusNode: focusNodes[0],
+                    useNativeKeyboard: false,
+                    showCursor: false,
+                  ),
+                  Pinput(
+                    length: 1,
+                    controller: controllers[1],
+                    focusNode: focusNodes[1],
+                    useNativeKeyboard: false,
+                    showCursor: false,
+                  ),
+                  Pinput(
+                    length: 1,
+                    controller: controllers[2],
+                    focusNode: focusNodes[2],
+                    useNativeKeyboard: false,
+                    showCursor: false,
+                  ),
+                  Pinput(
+                    length: 1,
+                    controller: controllers[3],
+                    focusNode: focusNodes[3],
+                    useNativeKeyboard: false,
+                    showCursor: false,
+                  ),
+                  Pinput(
+                    length: 1,
+                    controller: controllers[4],
+                    focusNode: focusNodes[4],
+                    useNativeKeyboard: false,
+                    showCursor: false,
+                  )
+                ],
               ),
+              const Spacer(),
+              customKeyboard(),
             ],
           ),
         ));
   }
-}
 
-class CustomKeyboard extends StatefulWidget {
-  final TextEditingController controller;
-  final String hiddenWord;
-  const CustomKeyboard(
-      {super.key, required this.controller, required this.hiddenWord});
-
-  @override
-  State<CustomKeyboard> createState() => _CustomKeyboardState();
-}
-
-class _CustomKeyboardState extends State<CustomKeyboard> {
   List<String> wrongLetters = [];
   List<String> rightLetters = [];
-  @override
-  Widget build(BuildContext context) {
+
+  Widget customKeyboard() {
     Size size = MediaQuery.of(context).size;
     double height = size.height;
     if (size.height > size.width) {
@@ -124,7 +209,6 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
       onKey: (RawKeyEvent event) {
         if (event is RawKeyDownEvent) {
           final String key = event.logicalKey.keyLabel;
-          p.log(key);
           if (key.isNotEmpty &&
               !key.isDigit() &&
               ((key.contains(RegExp(r'[A-Z]')) && key.length == 1) ||
@@ -186,64 +270,55 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
     );
   }
 
-  Widget buildKey(
-    String label, {
-    int? flex = 1,
-    double height = 30,
-    bool isDelete = false,
-  }) {
-    bool isWrongLetter = wrongLetters.contains(label);
-    bool isRightLetter = rightLetters.contains(label);
-    return Expanded(
-      flex: flex ?? 0,
-      child: Container(
-        height: height,
-        margin: const EdgeInsets.all(4.0),
-        child: ElevatedButton(
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.resolveWith<Color>(
-              (Set<MaterialState> states) {
-                if (states.contains(MaterialState.pressed)) {
-                  Colors.blueAccent.withOpacity(0.5);
-                } else if (isWrongLetter) {
-                  return Colors.red; // Change the color for pressed buttons
-                } else if (isRightLetter) {
-                  return Colors.green; // Change the color for pressed buttons
-                }
-                return Colors.blueAccent; // Use the component's default.
-              },
-            ),
-          ),
-          onPressed: () {
-            onKeyPressed(label);
-          },
-          child: isDelete
-              ? const Center(child: Icon(Icons.backspace))
-              : Center(child: Text(label)),
-        ),
-      ),
-    );
-  }
-
   void onKeyPressed(String key) {
     setState(() {
       if (key == 'Backspace') {
-        if (widget.controller.text.isNotEmpty) {
-          widget.controller.text = widget.controller.text
-              .substring(0, widget.controller.text.length - 1);
+        if (controllers[4].text.isNotEmpty) {
+          controllers[4].clear();
+          FocusScope.of(context).requestFocus(focusNodes[3]);
+        } else if (controllers[3].text.isNotEmpty) {
+          controllers[3].clear();
+          FocusScope.of(context).requestFocus(focusNodes[2]);
+        } else if (controllers[2].text.isNotEmpty) {
+          controllers[2].clear();
+          FocusScope.of(context).requestFocus(focusNodes[1]);
+        } else if (controllers[1].text.isNotEmpty) {
+          controllers[1].clear();
+          FocusScope.of(context).requestFocus(focusNodes[0]);
+        } else if (controllers[0].text.isNotEmpty) {
+          controllers[0].clear();
+          FocusScope.of(context).requestFocus(focusNodes[0]);
         }
       } else if (key == 'Enter') {
-        if (widget.controller.text.length < 5) {
+        if (controllers[4].text.isEmpty) {
           p.log('word incomplete');
           return;
         }
         updatePressedKeys();
       } else {
-        if (widget.controller.text.length == 5) {
+        if (controllers[4].text.isNotEmpty) {
           p.log('word full');
           return;
         }
-        widget.controller.text += key;
+        if (controllers[0].text.isEmpty) {
+          controllers[0].text += key;
+          FocusScope.of(context).requestFocus(focusNodes[1]);
+        } else if (controllers[1].text.isEmpty) {
+          controllers[1].text += key;
+          FocusScope.of(context).nextFocus();
+        } else if (controllers[2].text.isEmpty) {
+          controllers[2].text += key;
+          FocusScope.of(context).nextFocus();
+        } else if (controllers[3].text.isEmpty) {
+          controllers[3].text += key;
+          FocusScope.of(context).nextFocus();
+        } else if (controllers[4].text.isEmpty) {
+          controllers[4].text += key;
+          FocusScope.of(context).nextFocus();
+        }
+
+        FocusScope.of(context).nextFocus();
+        p.log(key);
         // pressedKeys.add(key);
       }
     });
@@ -251,14 +326,14 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
 
   void updatePressedKeys() {
     // Get the entered word
-    String enteredWord = widget.controller.text;
+    String enteredWord = controllers.map((c) => c.text).join();
+
+
 
     // Check the entered word against the hidden word
-    if (all.contains(enteredWord.toLowerCase())) {
-      if (enteredWord == widget.hiddenWord) {
-        p.log('Correct');
-      } else {
-        p.log('Wrong');
+    if (all.map((e) => e.toLowerCase()).contains(enteredWord.toLowerCase())) {
+      if(enteredWord.contains(controllers[0].text) && enteredWord[0] == controllers[0].text){
+
       }
       List<String> pressedKeys = [];
 
@@ -268,10 +343,10 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
 
       setState(() {
         wrongLetters = pressedKeys
-            .where((letter) => !widget.hiddenWord.split('').contains(letter))
+            .where((letter) => !hiddenWord.split('').contains(letter))
             .toList();
         rightLetters = pressedKeys
-            .where((letter) => widget.hiddenWord.split('').contains(letter))
+            .where((letter) => hiddenWord.split('').contains(letter))
             .toList();
       });
     } else {
