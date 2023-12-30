@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 import 'package:wordle/core/utils/utils.dart';
-import 'package:wordle/widgets/field.dart';
 import 'package:wordle/widgets/something.dart';
 
 void main() {
@@ -55,10 +54,11 @@ class WordleGameScreenState extends State<WordleGameScreen> {
     int randomIndex = Random().nextInt(fiveLetterWords.length);
     return fiveLetterWords[randomIndex].toUpperCase();
   }
+
   List<TextEditingController> controllers = [];
   List<FocusNode> focusNodes = [];
   bool isCorrect = false;
-  List<int> correctness = [];
+  List<int> correctness = List.filled(5, 0);
   Widget buildKey(
     String label, {
     int? flex = 1,
@@ -98,6 +98,21 @@ class WordleGameScreenState extends State<WordleGameScreen> {
     );
   }
 
+  PinTheme _pinTheme(int? correctness) {
+    return PinTheme(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+            color: correctness == 0
+                ? Colors.black12
+                : correctness == 1
+                    ? Colors.amberAccent
+                    : correctness == 2
+                        ? Colors.green
+                        : null,
+            borderRadius: BorderRadius.circular(10)));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,7 +124,7 @@ class WordleGameScreenState extends State<WordleGameScreen> {
                   Navigator.of(context).push(MaterialPageRoute(
                       builder: (context) => const Something()));
                 },
-                icon: Icon(Icons.ramen_dining))
+                icon: const Icon(Icons.ramen_dining))
           ],
         ),
         body: Padding(
@@ -150,40 +165,55 @@ class WordleGameScreenState extends State<WordleGameScreen> {
                   //   controller: controllers[4],
                   //   index: 4,
                   // ),
-                  Pinput(
-                    length: 1,
-                    controller: controllers[0],
-                    focusNode: focusNodes[0],
-                    useNativeKeyboard: false,
-                    showCursor: false,
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Pinput(
+                        length: 1,
+                        controller: controllers[0],
+                        focusNode: focusNodes[0],
+                        useNativeKeyboard: false,
+                        showCursor: false,
+                        defaultPinTheme: _pinTheme(correctness[0])),
                   ),
-                  Pinput(
-                    length: 1,
-                    controller: controllers[1],
-                    focusNode: focusNodes[1],
-                    useNativeKeyboard: false,
-                    showCursor: false,
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Pinput(
+                        length: 1,
+                        controller: controllers[1],
+                        focusNode: focusNodes[1],
+                        useNativeKeyboard: false,
+                        showCursor: false,
+                        defaultPinTheme: _pinTheme(correctness[1])),
                   ),
-                  Pinput(
-                    length: 1,
-                    controller: controllers[2],
-                    focusNode: focusNodes[2],
-                    useNativeKeyboard: false,
-                    showCursor: false,
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Pinput(
+                        length: 1,
+                        controller: controllers[2],
+                        focusNode: focusNodes[2],
+                        useNativeKeyboard: false,
+                        showCursor: false,
+                        defaultPinTheme: _pinTheme(correctness[2])),
                   ),
-                  Pinput(
-                    length: 1,
-                    controller: controllers[3],
-                    focusNode: focusNodes[3],
-                    useNativeKeyboard: false,
-                    showCursor: false,
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Pinput(
+                        length: 1,
+                        controller: controllers[3],
+                        focusNode: focusNodes[3],
+                        useNativeKeyboard: false,
+                        showCursor: false,
+                        defaultPinTheme: _pinTheme(correctness[3])),
                   ),
-                  Pinput(
-                    length: 1,
-                    controller: controllers[4],
-                    focusNode: focusNodes[4],
-                    useNativeKeyboard: false,
-                    showCursor: false,
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Pinput(
+                        length: 1,
+                        controller: controllers[4],
+                        focusNode: focusNodes[4],
+                        useNativeKeyboard: false,
+                        showCursor: false,
+                        defaultPinTheme: _pinTheme(correctness[4])),
                   )
                 ],
               ),
@@ -328,13 +358,65 @@ class WordleGameScreenState extends State<WordleGameScreen> {
     // Get the entered word
     String enteredWord = controllers.map((c) => c.text).join();
 
-
-
     // Check the entered word against the hidden word
     if (all.map((e) => e.toLowerCase()).contains(enteredWord.toLowerCase())) {
-      if(enteredWord.contains(controllers[0].text) && enteredWord[0] == controllers[0].text){
-
+      //field 1
+      if (hiddenWord.contains(controllers[0].text) &&
+          hiddenWord[0] == controllers[0].text) {
+        correctness[0] = 2;
+      } else if (hiddenWord.contains(controllers[0].text) &&
+          hiddenWord[0] != controllers[0].text) {
+        correctness[0] = 1;
+      } else if (!hiddenWord.contains(controllers[0].text)) {
+        correctness[0] = 0;
       }
+
+      //field 2
+      if (hiddenWord.contains(controllers[1].text) &&
+          hiddenWord[1] == controllers[1].text) {
+        correctness[1] = 2;
+      } else if (hiddenWord.contains(controllers[1].text) &&
+          hiddenWord[1] != controllers[1].text) {
+        correctness[1] = 1;
+      } else if (!hiddenWord.contains(controllers[0].text)) {
+        correctness[1] = 0;
+      }
+
+      //field 3
+      if (hiddenWord.contains(controllers[2].text) &&
+          hiddenWord[2] == controllers[2].text) {
+        correctness[2] = 2;
+      } else if (hiddenWord.contains(controllers[2].text) &&
+          hiddenWord[2] != controllers[2].text) {
+        correctness[2] = 1;
+      } else if (!hiddenWord.contains(controllers[2].text)) {
+        correctness[2] = 0;
+      }
+
+      //field 4
+      if (hiddenWord.contains(controllers[3].text) &&
+          hiddenWord[3] == controllers[3].text) {
+        correctness[3] = 2;
+      } else if (hiddenWord.contains(controllers[3].text) &&
+          hiddenWord[3] != controllers[3].text) {
+        correctness[3] = 1;
+      } else if (!hiddenWord.contains(controllers[0].text)) {
+        correctness[3] = 0;
+      }
+
+      //field 5
+      if (hiddenWord.contains(controllers[4].text) &&
+          hiddenWord[4] == controllers[4].text) {
+        correctness[4] = 2;
+      } else if (hiddenWord.contains(controllers[4].text) &&
+          hiddenWord[4] != controllers[5].text) {
+        correctness[4] = 1;
+      } else if (!hiddenWord.contains(controllers[4].text)) {
+        correctness[4] = 0;
+      }
+
+      p.log(correctness.toString());
+      setState(() {});
       List<String> pressedKeys = [];
 
       pressedKeys = enteredWord.split('');
