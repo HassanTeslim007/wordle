@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:wordle/main.dart';
 
 class CustomKeyboard extends StatefulWidget {
-  const CustomKeyboard({super.key});
+  final Function(String key) onKeyPressed;
+  final VoidCallback onBackPressed;
+  final VoidCallback onEnterPressed;
+  const CustomKeyboard(
+      {super.key,
+      required this.onKeyPressed,
+      required this.onBackPressed,
+      required this.onEnterPressed});
 
   @override
   State<CustomKeyboard> createState() => _CustomKeyboardState();
@@ -33,7 +39,17 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
             ),
           ),
           onPressed: () {
-            // onKeyPressed(label);
+            if (label.toLowerCase() == 'backspace') {
+              widget.onBackPressed();
+            }
+            if (label.toLowerCase() == 'enter') {
+              widget.onEnterPressed();
+            }
+            if (!(label.contains(RegExp(r'[A-Z]'))) || label.length != 1) {
+              return;
+            } else {
+              widget.onKeyPressed(label);
+            }
           },
           child: isDelete
               ? const Center(child: Icon(Icons.backspace))
@@ -56,12 +72,16 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
       onKey: (RawKeyEvent event) {
         if (event is RawKeyDownEvent) {
           final String key = event.logicalKey.keyLabel;
-          if (key.isNotEmpty &&
-              !key.isDigit() &&
-              ((key.contains(RegExp(r'[A-Z]')) && key.length == 1) ||
-                  key.toLowerCase() == 'backspace' ||
-                  key.toLowerCase() == 'enter')) {
-            // onKeyPressed(key);
+          if (key.toLowerCase() == 'backspace') {
+            widget.onBackPressed();
+          }
+          if (key.toLowerCase() == 'enter') {
+            widget.onEnterPressed();
+          }
+          if (!(key.contains(RegExp(r'[A-Z]'))) || key.length != 1) {
+            return;
+          } else {
+            widget.onKeyPressed(key);
           }
         }
       },

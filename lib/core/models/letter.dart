@@ -13,9 +13,22 @@ class Letter {
   }) {
     return Letter(
       value ?? this.value,
-     status: status ?? this.status,
+      status: status ?? this.status,
     );
   }
+
+  @override
+  String toString() => '$value${status != LetterStatus.initial ? status : ''}';
+
+  @override
+  bool operator ==(covariant Letter other) {
+    if (identical(this, other)) return true;
+
+    return other.value == value && other.status == status;
+  }
+
+  @override
+  int get hashCode => value.hashCode ^ status.hashCode;
 }
 
 enum LetterStatus { initial, correct, inWord, wrong }

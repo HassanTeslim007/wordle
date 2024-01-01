@@ -41,13 +41,25 @@ class _LetterBoxState extends State<LetterBox> {
       width: 50,
       height: 50,
       decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+        color: widget.letter.status == LetterStatus.correct
+            ? Colors.green
+            : widget.letter.status == LetterStatus.wrong
+                ? Colors.red
+                : widget.letter.status == LetterStatus.inWord
+                    ? Colors.amberAccent
+                    : Colors.transparent,
         border: Border.all(
             color: widget.letter.status == LetterStatus.initial
                 ? Colors.grey
                 : Colors.transparent),
       ),
       child: Center(
-        child: Text(widget.letter.value),
+        child: Text(
+          widget.letter.value,
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
+        ),
       ),
     );
   }
