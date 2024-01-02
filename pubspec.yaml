@@ -11,6 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_colorpicker: ^1.0.3
+  flutter_dialogs: ^3.0.0
   google_fonts: ^6.1.0
   pinput: ^3.0.1
   stroke_text: ^0.0.2

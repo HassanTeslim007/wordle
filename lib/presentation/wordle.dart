@@ -4,6 +4,7 @@ import 'package:english_words/english_words.dart';
 import 'package:flutter/material.dart';
 import 'package:wordle/core/models/letter.dart';
 import 'package:wordle/core/models/word.dart';
+import 'package:wordle/core/utils/utils.dart';
 import 'package:wordle/widgets/board.dart';
 import 'package:wordle/widgets/keyboard.dart';
 
@@ -18,8 +19,11 @@ class _WordleState extends State<Wordle> {
   GameStatus status = GameStatus.playing;
   late String hiddenWord;
   String generateWord() {
-    List<String> fiveLetterWords =
-        all.where((word) => word.length == 5).toList();
+    List<String> fiveLetterWords = [
+      ...all.where((word) => word.length == 5).toList(),
+      ...all.where((word) => word.length == 4).map((e) => '${e}s').toList()
+    ];
+
     int randomIndex = Random().nextInt(fiveLetterWords.length);
     return fiveLetterWords[randomIndex].toUpperCase();
   }
@@ -40,9 +44,10 @@ class _WordleState extends State<Wordle> {
 
   void getHiddenWord() {
     hiddenWord = generateWord();
-    print(hiddenWord);
+    debugPrint(hiddenWord);
   }
 
+  final List<Letter> pressedKeys = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,6 +64,7 @@ class _WordleState extends State<Wordle> {
             Board(words: words),
             const Spacer(),
             CustomKeyboard(
+              pressedKeys: pressedKeys,
               onBackPressed: () {
                 _currentWord?.removeLetter();
                 setState(() {});
@@ -90,7 +96,10 @@ class _WordleState extends State<Wordle> {
       return;
     } else {
       String word = _currentWord!.wordString;
-      if (!all.map((e) => e.toLowerCase()).contains(word.toLowerCase())) {
+      if (![
+        ...all.where((word) => word.length == 5).toList(),
+        ...all.where((word) => word.length == 4).map((e) => '${e}s').toList()
+      ].map((e) => e.toLowerCase()).contains(word.toLowerCase())) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Word not found'),
           backgroundColor: Colors.red,
@@ -102,16 +111,19 @@ class _WordleState extends State<Wordle> {
           setState(() {
             _currentWord!.letters[i] = _currentWord!.letters[i]
                 .copyWith(value: word[i], status: LetterStatus.correct);
+            pressedKeys.add(Letter(word[i], status: LetterStatus.correct));
           });
         } else if (hiddenWord.contains(word[i])) {
           setState(() {
             _currentWord!.letters[i] = _currentWord!.letters[i]
                 .copyWith(value: word[i], status: LetterStatus.inWord);
+            pressedKeys.add(Letter(word[i], status: LetterStatus.inWord));
           });
         } else {
           setState(() {
             _currentWord!.letters[i] = _currentWord!.letters[i]
                 .copyWith(value: word[i], status: LetterStatus.wrong);
+            pressedKeys.add(Letter(word[i], status: LetterStatus.wrong));
           });
         }
       }
@@ -127,43 +139,34 @@ class _WordleState extends State<Wordle> {
     String word = _currentWord!.wordString;
     if (word == hiddenWord) {
       status = GameStatus.over;
-      await showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: const Text("Congratulation! You win"),
-              actions: [
-                ElevatedButton(
-                    onPressed: () {
-                      playAgain();
-                      Navigator.pop(context);
-                    },
-                    child: const Text("Play Again"))
-              ],
-            );
-          });
+      await showAlertDialog(
+        context,
+        title: 'Congratulations, You win',
+        body: ySpace(1),
+        okTitle: 'Play Again',
+        okPressed: () {
+          playAgain();
+          Navigator.pop(context);
+        },
+        withButton: true,
+      );
     }
 
     if (_currentIndex == 5) {
       if (!mounted) return;
       if (word != hiddenWord) {
         status = GameStatus.over;
-        await showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: const Text("You lose"),
-                content: Text('The word is $hiddenWord'),
-                actions: [
-                  ElevatedButton(
-                      onPressed: () {
-                        playAgain();
-                        Navigator.pop(context);
-                      },
-                      child: const Text("Play Again"))
-                ],
-              );
-            });
+        await showAlertDialog(
+          context,
+          title: 'Sorry, You lose',
+          body: Text('Correct Word is $hiddenWord'),
+          okTitle: 'Play Again',
+          okPressed: () {
+            playAgain();
+            Navigator.pop(context);
+          },
+          withButton: true,
+        );
       }
     }
   }
@@ -175,6 +178,7 @@ class _WordleState extends State<Wordle> {
     words = List.generate(
         6, (index) => Word(List.generate(5, (index) => Letter.empty())));
     getHiddenWord();
+    pressedKeys.clear();
     setState(() {});
   }
 }

@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:wordle/core/models/letter.dart';
 
-class CustomKeyboard extends StatefulWidget {
+class CustomKeyboard extends StatelessWidget {
   final Function(String key) onKeyPressed;
   final VoidCallback onBackPressed;
   final VoidCallback onEnterPressed;
+  final List<Letter> pressedKeys;
   const CustomKeyboard(
       {super.key,
       required this.onKeyPressed,
       required this.onBackPressed,
-      required this.onEnterPressed});
+      required this.onEnterPressed,
+      required this.pressedKeys});
 
-  @override
-  State<CustomKeyboard> createState() => _CustomKeyboardState();
-}
+  List<Letter> get correctKeys => pressedKeys
+      .where((element) => element.status == LetterStatus.correct)
+      .toList();
 
-class _CustomKeyboardState extends State<CustomKeyboard> {
+  List<Letter> get wrongKeys => pressedKeys
+      .where((element) => element.status == LetterStatus.wrong)
+      .toList();
+
   Widget buildKey(
     String label, {
     int? flex = 1,
@@ -32,7 +38,19 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
             backgroundColor: MaterialStateProperty.resolveWith<Color>(
               (Set<MaterialState> states) {
                 if (states.contains(MaterialState.pressed)) {
-                  Colors.blueAccent.withOpacity(0.5);
+                  return Colors.blueAccent.withOpacity(0.5);
+                } else if (pressedKeys
+                    .where((element) => element.status == LetterStatus.correct)
+                    .contains(Letter(label, status: LetterStatus.correct))) {
+                  return Colors.green.shade700;
+                } else if (pressedKeys
+                    .where((element) => element.status == LetterStatus.wrong)
+                    .contains(Letter(label, status: LetterStatus.wrong))) {
+                  return Colors.red.shade700;
+                } else if (pressedKeys
+                    .where((element) => element.status == LetterStatus.inWord)
+                    .contains(Letter(label, status: LetterStatus.inWord))) {
+                  return Colors.yellow.shade700;
                 }
                 return Colors.blueAccent; // Use the component's default.
               },
@@ -40,15 +58,15 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
           ),
           onPressed: () {
             if (label.toLowerCase() == 'backspace') {
-              widget.onBackPressed();
+              onBackPressed();
             }
             if (label.toLowerCase() == 'enter') {
-              widget.onEnterPressed();
+              onEnterPressed();
             }
             if (!(label.contains(RegExp(r'[A-Z]'))) || label.length != 1) {
               return;
             } else {
-              widget.onKeyPressed(label);
+              onKeyPressed(label);
             }
           },
           child: isDelete
@@ -73,15 +91,15 @@ class _CustomKeyboardState extends State<CustomKeyboard> {
         if (event is RawKeyDownEvent) {
           final String key = event.logicalKey.keyLabel;
           if (key.toLowerCase() == 'backspace') {
-            widget.onBackPressed();
+            onBackPressed();
           }
           if (key.toLowerCase() == 'enter') {
-            widget.onEnterPressed();
+            onEnterPressed();
           }
           if (!(key.contains(RegExp(r'[A-Z]'))) || key.length != 1) {
             return;
           } else {
-            widget.onKeyPressed(key);
+            onKeyPressed(key);
           }
         }
       },
