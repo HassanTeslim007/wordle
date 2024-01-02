@@ -15,6 +15,7 @@ class Wordle extends StatefulWidget {
 }
 
 class _WordleState extends State<Wordle> {
+  GameStatus status = GameStatus.playing;
   late String hiddenWord;
   String generateWord() {
     List<String> fiveLetterWords =
@@ -33,9 +34,13 @@ class _WordleState extends State<Wordle> {
 
   @override
   void initState() {
+    getHiddenWord();
+    super.initState();
+  }
+
+  void getHiddenWord() {
     hiddenWord = generateWord();
     print(hiddenWord);
-    super.initState();
   }
 
   @override
@@ -59,40 +64,11 @@ class _WordleState extends State<Wordle> {
                 setState(() {});
               },
               onEnterPressed: () {
-                if (_currentWord!.letters.contains(Letter.empty())) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Word Incomplete'),
-                    backgroundColor: Colors.red,
-                  ));
+                if (status == GameStatus.over) {
+                  playAgain();
                   return;
-                } else {
-                  String word = _currentWord!.wordString;
-                  for (var i = 0; i < 5; i++) {
-                    if (word[i] == hiddenWord[i]) {
-                      print('right');
-                      setState(() {
-                        _currentWord!.letters[i] = _currentWord!.letters[i]
-                            .copyWith(
-                                value: word[i], status: LetterStatus.correct);
-                      });
-                    } else if (hiddenWord.contains(word[i])) {
-                      print('in Word');
-                      setState(() {
-                        _currentWord!.letters[i] = _currentWord!.letters[i]
-                            .copyWith(
-                                value: word[i], status: LetterStatus.inWord);
-                      });
-                    } else {
-                      print('wrong');
-                      setState(() {
-                        _currentWord!.letters[i] = _currentWord!.letters[i]
-                            .copyWith(
-                                value: word[i], status: LetterStatus.wrong);
-                      });
-                    }
-                  }
                 }
-                _currentIndex++;
+                checkLetters();
               },
               onKeyPressed: (key) {
                 _currentWord?.addLetter(key);
@@ -104,4 +80,103 @@ class _WordleState extends State<Wordle> {
       ),
     );
   }
+
+  void checkLetters() {
+    if (_currentWord!.letters.contains(Letter.empty())) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Word Incomplete'),
+        backgroundColor: Colors.red,
+      ));
+      return;
+    } else {
+      String word = _currentWord!.wordString;
+      if (!all.map((e) => e.toLowerCase()).contains(word.toLowerCase())) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Word not found'),
+          backgroundColor: Colors.red,
+        ));
+        return;
+      }
+      for (var i = 0; i < 5; i++) {
+        if (word[i] == hiddenWord[i]) {
+          setState(() {
+            _currentWord!.letters[i] = _currentWord!.letters[i]
+                .copyWith(value: word[i], status: LetterStatus.correct);
+          });
+        } else if (hiddenWord.contains(word[i])) {
+          setState(() {
+            _currentWord!.letters[i] = _currentWord!.letters[i]
+                .copyWith(value: word[i], status: LetterStatus.inWord);
+          });
+        } else {
+          setState(() {
+            _currentWord!.letters[i] = _currentWord!.letters[i]
+                .copyWith(value: word[i], status: LetterStatus.wrong);
+          });
+        }
+      }
+    }
+    checkWord();
+    if (_currentIndex < 6) {
+      _currentIndex++;
+    }
+  }
+
+  void checkWord() async {
+    // print(_currentWord?.wordString ?? 'I dont');
+    String word = _currentWord!.wordString;
+    if (word == hiddenWord) {
+      status = GameStatus.over;
+      await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text("Congratulation! You win"),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      playAgain();
+                      Navigator.pop(context);
+                    },
+                    child: const Text("Play Again"))
+              ],
+            );
+          });
+    }
+
+    if (_currentIndex == 5) {
+      if (!mounted) return;
+      if (word != hiddenWord) {
+        status = GameStatus.over;
+        await showDialog(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: const Text("You lose"),
+                content: Text('The word is $hiddenWord'),
+                actions: [
+                  ElevatedButton(
+                      onPressed: () {
+                        playAgain();
+                        Navigator.pop(context);
+                      },
+                      child: const Text("Play Again"))
+                ],
+              );
+            });
+      }
+    }
+  }
+
+  void playAgain() {
+    status = GameStatus.starts;
+    _currentIndex = 0;
+    words.clear();
+    words = List.generate(
+        6, (index) => Word(List.generate(5, (index) => Letter.empty())));
+    getHiddenWord();
+    setState(() {});
+  }
 }
+
+enum GameStatus { starts, playing, over }

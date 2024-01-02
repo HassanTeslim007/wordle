@@ -12,3 +12,14 @@ SizedBox xSpace(width) {
     width: width.toDouble(),
   );
 }
+
+extension StringExtension on String {
+  bool isDigit() {
+    try {
+      double.parse(this);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+}
