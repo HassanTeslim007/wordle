@@ -10,12 +10,12 @@ class Something extends StatefulWidget {
 }
 
 class _SomethingState extends State<Something> {
-  double fontSize = 20;
-  double strokeWidth = 1;
-  String text = '';
+  double fontSize = 70;
+  double strokeWidth = 11;
+  String text = 'Hello World!';
   Color pickerColor = const Color(0xff443a49);
-  Color textColor = const Color(0xff443a49);
-  Color strokeColor = const Color(0xff443a49);
+  Color textColor = const Color.fromARGB(255, 159, 3, 237);
+  Color strokeColor = const Color.fromARGB(255, 147, 243, 2);
   bool isToggled = false;
   @override
   Widget build(BuildContext context) {
@@ -65,6 +65,7 @@ class _SomethingState extends State<Something> {
                       : TextStyle(
                           fontSize: fontSize,
                           color: textColor,
+                         
                         ),
                 )
               ],

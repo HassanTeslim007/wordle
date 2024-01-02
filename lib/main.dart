@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 import 'package:wordle/core/utils/utils.dart';
+import 'package:wordle/presentation/wordle.dart';
 import 'package:wordle/widgets/something.dart';
 
 void main() {
@@ -19,7 +20,7 @@ class WordleGameApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: 'Wordle Game',
-      home: WordleGameScreen(),
+      home: Wordle(),
     );
   }
 }
@@ -79,7 +80,7 @@ class WordleGameScreenState extends State<WordleGameScreen> {
                 if (states.contains(MaterialState.pressed)) {
                   Colors.blueAccent.withOpacity(0.5);
                 } else if (isWrongLetter) {
-                  return Colors.red; // Change the color for pressed buttons
+                  return Colors.black12; // Change the color for pressed buttons
                 } else if (isRightLetter) {
                   return Colors.green; // Change the color for pressed buttons
                 }
