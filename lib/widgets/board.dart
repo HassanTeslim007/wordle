@@ -37,9 +37,9 @@ class _LetterBoxState extends State<LetterBox> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(10),
-      width: 50,
-      height: 50,
+      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(6),
         color: widget.letter.status == LetterStatus.correct

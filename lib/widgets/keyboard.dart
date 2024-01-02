@@ -30,48 +30,85 @@ class CustomKeyboard extends StatelessWidget {
   }) {
     return Expanded(
       flex: flex ?? 0,
-      child: Container(
-        height: height,
-        margin: const EdgeInsets.all(4.0),
-        child: ElevatedButton(
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.resolveWith<Color>(
-              (Set<MaterialState> states) {
-                if (states.contains(MaterialState.pressed)) {
-                  return Colors.blueAccent.withOpacity(0.5);
-                } else if (pressedKeys
-                    .where((element) => element.status == LetterStatus.correct)
-                    .contains(Letter(label, status: LetterStatus.correct))) {
-                  return Colors.green.shade700;
-                } else if (pressedKeys
-                    .where((element) => element.status == LetterStatus.wrong)
-                    .contains(Letter(label, status: LetterStatus.wrong))) {
-                  return Colors.red.shade700;
-                } else if (pressedKeys
-                    .where((element) => element.status == LetterStatus.inWord)
-                    .contains(Letter(label, status: LetterStatus.inWord))) {
-                  return Colors.yellow.shade700;
-                }
-                return Colors.blueAccent; // Use the component's default.
-              },
-            ),
-          ),
-          onPressed: () {
-            if (label.toLowerCase() == 'backspace') {
-              onBackPressed();
-            }
-            if (label.toLowerCase() == 'enter') {
-              onEnterPressed();
-            }
-            if (!(label.contains(RegExp(r'[A-Z]'))) || label.length != 1) {
-              return;
-            } else {
-              onKeyPressed(label);
-            }
-          },
+      child: InkWell(
+        onTap: () {
+          if (label.toLowerCase() == 'backspace') {
+            onBackPressed();
+          }
+          if (label.toLowerCase() == 'enter') {
+            onEnterPressed();
+          }
+          if (!(label.contains(RegExp(r'[A-Z]'))) || label.length != 1) {
+            return;
+          } else {
+            onKeyPressed(label);
+          }
+        },
+        child: Container(
+          height: height,
+          margin: const EdgeInsets.all(4.0),
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              color: pressedKeys
+                      .where(
+                          (element) => element.status == LetterStatus.correct)
+                      .contains(Letter(label, status: LetterStatus.correct))
+                  ? Colors.green.shade700
+                  : pressedKeys
+                          .where(
+                              (element) => element.status == LetterStatus.wrong)
+                          .contains(Letter(label, status: LetterStatus.wrong))
+                      ? Colors.red.shade700
+                      : pressedKeys
+                              .where((element) =>
+                                  element.status == LetterStatus.wrong)
+                              .contains(
+                                  Letter(label, status: LetterStatus.wrong))
+                          ? Colors.yellow.shade700
+                          : Colors.blueAccent),
           child: isDelete
               ? const Center(child: Icon(Icons.backspace))
               : Center(child: Text(label)),
+          // child: ElevatedButton(
+          //   style: ButtonStyle(
+          //     backgroundColor: MaterialStateProperty.resolveWith<Color>(
+          //       (Set<MaterialState> states) {
+          //         if (states.contains(MaterialState.pressed)) {
+          //           return Colors.blueAccent.withOpacity(0.5);
+          // } else if (pressedKeys
+          //     .where((element) => element.status == LetterStatus.correct)
+          //     .contains(Letter(label, status: LetterStatus.correct))) {
+          //   return Colors.green.shade700;
+          // } else if (pressedKeys
+          //             .where((element) => element.status == LetterStatus.wrong)
+          //             .contains(Letter(label, status: LetterStatus.wrong))) {
+          //           return Colors.red.shade700;
+          //         } else if (pressedKeys
+          //             .where((element) => element.status == LetterStatus.inWord)
+          //             .contains(Letter(label, status: LetterStatus.inWord))) {
+          //           return Colors.yellow.shade700;
+          //         }
+          //         return Colors.blueAccent; // Use the component's default.
+          //       },
+          //     ),
+          //   ),
+          //   onPressed: () {
+          // if (label.toLowerCase() == 'backspace') {
+          //   onBackPressed();
+          // }
+          // if (label.toLowerCase() == 'enter') {
+          //   onEnterPressed();
+          // }
+          // if (!(label.contains(RegExp(r'[A-Z]'))) || label.length != 1) {
+          //   return;
+          // } else {
+          //   onKeyPressed(label);
+          // }
+          //   },
+          // child: isDelete
+          //     ? const Center(child: Icon(Icons.backspace))
+          //     : Center(child: Text(label)),
+          // ),
         ),
       ),
     );

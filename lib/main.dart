@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:wordle/presentation/wordle.dart';
 
@@ -14,6 +13,7 @@ class WordleGameApp extends StatelessWidget {
     return const MaterialApp(
       title: 'Wordle Game',
       home: Wordle(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

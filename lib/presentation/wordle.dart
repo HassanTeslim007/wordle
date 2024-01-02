@@ -51,7 +51,7 @@ class _WordleState extends State<Wordle> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black38,
+      backgroundColor: Colors.black,
       appBar: AppBar(
         title: const Text('Wordle'),
         centerTitle: true,
